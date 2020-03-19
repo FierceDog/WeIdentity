@@ -132,37 +132,11 @@ public class QrCodeJsonTransportationImpl
     @Override
     public <T extends JsonSerializer> ResponseData<T> deserialize(
         String transString,
-        Class<T> clazz
-    ) {
-        return deserializeInner(null, transString, clazz);
-    }
-    
-    @Override
-    public <T extends JsonSerializer> ResponseData<T> deserialize(
-        WeIdAuthentication weIdAuthentication,
-        String transString, 
-        Class<T> clazz
-    ) {
-        // 检查WeIdAuthentication合法性
-        ErrorCode errorCode = checkWeIdAuthentication(weIdAuthentication);
-        if (errorCode != ErrorCode.SUCCESS) {
-            logger.error(
-                "[deserialize] checkWeIdAuthentication fail, errorCode:{}.", 
-                errorCode
-            );
-            return new ResponseData<T>(null, errorCode);
-        }
-        return deserializeInner(weIdAuthentication, transString, clazz);
-    }
-    
-    private <T extends JsonSerializer> ResponseData<T> deserializeInner(
-        WeIdAuthentication weIdAuthentication,
-        String transString, 
-        Class<T> clazz
-    ) {
+        Class<T> clazz) {
+        
+        logger.info("[deserialize] begin to execute QrCodeTransportation deserialize.");
+        logger.info("[deserialize] the transString:{}.", transString);
         try {
-            logger.info("[deserialize] begin to execute QrCodeTransportation deserialize.");
-            logger.info("[deserialize] the transString:{}.", transString);
             //解析协议版本
             QrCodeVersion version = QrCodeBaseData.getQrCodeVersion(transString);
             //根据协议版本生成协议实体对象
@@ -175,7 +149,7 @@ public class QrCodeJsonTransportationImpl
                     qrCodeData.getId(),
                     qrCodeData.getOrgId(),
                     qrCodeData.getData(),
-                    weIdAuthentication
+                    super.getWeIdAuthentication()
                 );
             logger.info("[deserialize] encode by {}.", qrCodeData.getEncodeType().name());
             //进行解码处理
@@ -207,5 +181,21 @@ public class QrCodeJsonTransportationImpl
             logger.error("[deserialize] QrCodeTransportation deserialize due to unknown error.", e);
             return new ResponseData<T>(null, ErrorCode.UNKNOW_ERROR);
         }
+    }
+    
+    @Override
+    public <T extends JsonSerializer> ResponseData<T> deserialize(
+        WeIdAuthentication weIdAuthentication,
+        String transString, 
+        Class<T> clazz
+    ) {
+        //检查WeIdAuthentication合法性
+        ErrorCode errorCode = checkWeIdAuthentication(weIdAuthentication);
+        if (errorCode != ErrorCode.SUCCESS) {
+            logger.error("[deserialize] checkWeIdAuthentication fail, errorCode:{}.", errorCode);
+            return new ResponseData<T>(null, errorCode);
+        }
+        super.setWeIdAuthentication(weIdAuthentication);
+        return deserialize(transString, clazz);
     }
 }

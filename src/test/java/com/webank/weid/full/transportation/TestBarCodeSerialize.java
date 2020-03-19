@@ -37,10 +37,8 @@ import com.webank.weid.protocol.base.CredentialPojo;
 import com.webank.weid.protocol.base.PresentationE;
 import com.webank.weid.protocol.response.ResponseData;
 import com.webank.weid.suite.api.transportation.TransportationFactory;
-import com.webank.weid.suite.api.transportation.inf.Transportation;
 import com.webank.weid.suite.api.transportation.params.EncodeType;
 import com.webank.weid.suite.api.transportation.params.ProtocolProperty;
-import com.webank.weid.suite.api.transportation.params.TransportationType;
 import com.webank.weid.suite.crypto.CryptService;
 import com.webank.weid.suite.crypto.CryptServiceFactory;
 import com.webank.weid.suite.entity.CryptType;
@@ -56,18 +54,11 @@ public class TestBarCodeSerialize extends TestBaseTransportation {
     private static final Logger logger = LoggerFactory.getLogger(TestBarCodeSerialize.class);
 
     private PresentationE presentation;
-    
-    private static Transportation transportation;
 
     @Override
     public synchronized void testInit() {
         super.testInit();
         presentation = getPresentationE();
-        if (transportation == null) {
-            transportation = 
-                TransportationFactory.newTransportation(TransportationType.BAR_CODE)
-                    .specify(verifier);
-        }
     }
 
     /**
@@ -75,10 +66,8 @@ public class TestBarCodeSerialize extends TestBaseTransportation {
      */
     @Test
     public void testSerializeCase1() {
-        ResponseData<String> response = transportation.serialize(
-            presentation, 
-            new ProtocolProperty(EncodeType.ORIGINAL)
-        );
+        ResponseData<String> response = TransportationFactory.newBarCodeTransportation()
+            .serialize(presentation, new ProtocolProperty(EncodeType.ORIGINAL));
         LogUtil.info(logger, "serialize", response);
         Assert.assertEquals(ErrorCode.SUCCESS.getCode(), response.getErrorCode().intValue());
         Assert.assertNotNull(response.getResult());
@@ -89,10 +78,9 @@ public class TestBarCodeSerialize extends TestBaseTransportation {
      */
     @Test
     public void testSerializeCase2() {
-        ResponseData<String> response = transportation.serialize(
-            presentation, 
-            new ProtocolProperty(EncodeType.CIPHER)
-        );
+        ResponseData<String> response = TransportationFactory.newBarCodeTransportation()
+            .specify(verifier)
+            .serialize(presentation, new ProtocolProperty(EncodeType.CIPHER));
         LogUtil.info(logger, "serialize", response);
         Assert.assertEquals(ErrorCode.SUCCESS.getCode(), response.getErrorCode().intValue());
         Assert.assertNotNull(response.getResult());
@@ -111,19 +99,14 @@ public class TestBarCodeSerialize extends TestBaseTransportation {
             credentialPojoService.addSignature(credPojoList, weIdAuthentication)
                 .getResult();
 
-        ResponseData<String> response = transportation.serialize(
-            triSigned, 
-            new ProtocolProperty(EncodeType.ORIGINAL)
-        );
+        ResponseData<String> response = TransportationFactory.newBarCodeTransportation()
+            .serialize(triSigned, new ProtocolProperty(EncodeType.ORIGINAL));
         LogUtil.info(logger, "serialize", response);
         Assert.assertEquals(ErrorCode.SUCCESS.getCode(), response.getErrorCode().intValue());
         Assert.assertNotNull(response.getResult());
 
-        ResponseData<CredentialPojo> wrapperRes = transportation.deserialize(
-            weIdAuthentication, 
-            response.getResult(), 
-            CredentialPojo.class
-        );
+        ResponseData<CredentialPojo> wrapperRes = TransportationFactory.newBarCodeTransportation()
+            .deserialize(weIdAuthentication, response.getResult(), CredentialPojo.class);
         LogUtil.info(logger, "deserialize", wrapperRes);
         Assert.assertEquals(ErrorCode.SUCCESS.getCode(), wrapperRes.getErrorCode().intValue());
         Assert.assertTrue(CredentialPojoUtils.isEqual(triSigned, wrapperRes.getResult()));
@@ -134,7 +117,8 @@ public class TestBarCodeSerialize extends TestBaseTransportation {
      */
     @Test
     public void testSerializeCase3() {
-        ResponseData<String> response = transportation.serialize(presentation, null);
+        ResponseData<String> response = TransportationFactory.newBarCodeTransportation()
+            .serialize(presentation, null);
         LogUtil.info(logger, "serialize", response);
         Assert.assertEquals(
             ErrorCode.TRANSPORTATION_PROTOCOL_PROPERTY_ERROR.getCode(),
@@ -148,10 +132,8 @@ public class TestBarCodeSerialize extends TestBaseTransportation {
      */
     @Test
     public void testSerializeCase4() {
-        ResponseData<String> response = transportation.serialize(
-            presentation,
-            new ProtocolProperty(null)
-        );
+        ResponseData<String> response = TransportationFactory.newBarCodeTransportation()
+            .serialize(presentation, new ProtocolProperty(null));
         LogUtil.info(logger, "serialize", response);
         Assert.assertEquals(
             ErrorCode.TRANSPORTATION_PROTOCOL_ENCODE_ERROR.getCode(),
@@ -166,10 +148,8 @@ public class TestBarCodeSerialize extends TestBaseTransportation {
     @Test
     public void testSerializeCase5() {
         PresentationE presentation = null;
-        ResponseData<String> response = transportation.serialize(
-            presentation, 
-            new ProtocolProperty(EncodeType.ORIGINAL)
-        );
+        ResponseData<String> response = TransportationFactory.newBarCodeTransportation()
+            .serialize(presentation, new ProtocolProperty(EncodeType.ORIGINAL));
         LogUtil.info(logger, "serialize", response);
         Assert.assertEquals(
             ErrorCode.TRANSPORTATION_PROTOCOL_DATA_INVALID.getCode(),
@@ -191,10 +171,9 @@ public class TestBarCodeSerialize extends TestBaseTransportation {
             }
         };
 
-        ResponseData<String> response = transportation.serialize(
-            presentation, 
-            new ProtocolProperty(EncodeType.CIPHER)
-        );
+        ResponseData<String> response = TransportationFactory.newBarCodeTransportation()
+            .specify(verifier)
+            .serialize(presentation, new ProtocolProperty(EncodeType.CIPHER));
 
         LogUtil.info(logger, "serialize", response);
         Assert.assertEquals(

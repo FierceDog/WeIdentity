@@ -30,9 +30,9 @@ import com.webank.weid.exception.WeIdBaseException;
  */
 public enum UriType {
     /**
-     * 协议为机构协议,表明协议后面的为机构名称.
+     * 通过AMOP请求数据.
      */
-    ORG(0);
+    AMOP(0);
     
     private Integer code;
 
@@ -45,10 +45,10 @@ public enum UriType {
     }
 
     /**
-     * 根据编号获取枚举值.
+     * get UriType By code.
      *
-     * @param code 类型对应的编码
-     * @return UriType 返回枚举值
+     * @param code the Uri type code
+     * @return UriType 返回类型
      */
     public static UriType getUriByCode(Integer code) {
         for (UriType type : UriType.values()) {
